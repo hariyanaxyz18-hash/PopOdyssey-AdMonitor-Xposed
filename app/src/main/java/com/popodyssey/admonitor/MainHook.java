@@ -13,7 +13,9 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public final class MainHook implements IXposedHookLoadPackage {
-    private static final String TAG = "PO-AdMonitor";\n    // V0.4 runtime tracing: diagnostic-only; no argument/return-value modification.\n    private static final String V04 = "V0.4 runtime tracing";
+    private static final String TAG = "PO-AdMonitor";
+    // V0.4 runtime tracing: diagnostic-only; no argument/return-value modification.
+    private static final String V04 = "V0.4 runtime tracing";
     private static final String TARGET = "com.terraform.popodyssey";
 
     /*
