@@ -1,0 +1,14 @@
+Pop Odyssey Ad Monitor V0.5
+Concrete Rewarded Listener Tracing.
+
+Changes from V0.4:
+- Hooks AlexMaxRewardedVideoAdapter.createLoadListener(...).
+- After the factory returns, logs the concrete listener class.
+- Installs read-only hooks on callback methods declared by that concrete listener:
+  onAdLoaded, onAdDisplayed, onUserRewarded, onAdHidden,
+  onAdLoadFailed, onAdDisplayFailed.
+- Avoids relying only on the MaxRewardedAdListener interface.
+- No modification of arguments, return values, reward values, ad requests,
+  responses, traffic, clicks, or network state.
+
+Target: Pop Odyssey com.terraform.popodyssey

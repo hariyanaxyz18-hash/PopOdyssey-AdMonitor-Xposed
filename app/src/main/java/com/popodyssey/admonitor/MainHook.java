@@ -52,7 +52,7 @@ public final class MainHook implements IXposedHookLoadPackage {
         if (!TARGET.equals(lpparam.packageName)) return;
 
         XposedBridge.log(TAG + ": attached to " + TARGET);
-        log("mode", "inventory+safe-wrapper-hooks-v0.3");
+        log("mode", "inventory+safe-wrapper-hooks-v0.5-concrete-listener");
 
         int available = 0;
         for (String name : WRAPPER_CLASSES) {
@@ -60,6 +60,8 @@ public final class MainHook implements IXposedHookLoadPackage {
         }
         log("summary", "wrapper_classes_available=" + available
                 + "/" + WRAPPER_CLASSES.length);
+
+        installRewardListenerFactoryTrace(lpparam.classLoader);
     }
 
     private static boolean inspectAndHook(ClassLoader cl, String className) {
@@ -178,45 +180,85 @@ public final class MainHook implements IXposedHookLoadPackage {
         XposedBridge.log(line);
     }
 
-    private static void traceRewardRuntime(final ClassLoader cl) {
-        final String[] rewardClasses = new String[] {
-                "com.alex.AlexMaxRewardAd",
-                "com.alex.AlexMaxRewardedVideoAdapter"
+    /*
+     * V0.5: hook the concrete listener object returned by the app wrapper.
+     * This is more reliable than hooking only the MaxRewardedAdListener
+     * interface, because the actual callback implementation may be an
+     * anonymous/private class inside the wrapper. Diagnostic-only.
+     */
+    private static void installRewardListenerFactoryTrace(final ClassLoader cl) {
+        try {
+            Class<?> adapter = Class.forName(
+                    "com.alex.AlexMaxRewardedVideoAdapter", false, cl);
+
+            for (Method m : adapter.getDeclaredMethods()) {
+                if (!"createLoadListener".equals(m.getName())) continue;
+
+                try {
+                    XposedBridge.hookMethod(m, new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam p) {
+                            Object listener = p.getResult();
+                            if (listener == null) {
+                                log("listener_created", "null");
+                                return;
+                            }
+
+                            Class<?> lc = listener.getClass();
+                            log("listener_created", lc.getName()
+                                    + "|super=" + (lc.getSuperclass() == null
+                                    ? "null" : lc.getSuperclass().getName()));
+                            hookConcreteRewardListener(lc);
+                        }
+                    });
+                    log("factory_hooked", signature(m));
+                } catch (Throwable t) {
+                    log("factory_hook_failed", signature(m) + "|"
+                            + t.getClass().getSimpleName() + "|" + safe(t.getMessage()));
+                }
+            }
+        } catch (Throwable t) {
+            log("factory_class_failed", t.getClass().getSimpleName() + "|" + safe(t.getMessage()));
+        }
+    }
+
+    private static void hookConcreteRewardListener(final Class<?> listenerClass) {
+        final String[] callbackNames = {
+                "onAdLoaded", "onAdDisplayed", "onUserRewarded",
+                "onAdHidden", "onAdLoadFailed", "onAdDisplayFailed"
         };
 
-        for (String cn : rewardClasses) {
+        int found = 0;
+        int hooked = 0;
+
+        for (Method m : listenerClass.getDeclaredMethods()) {
+            if (!isCallbackName(m.getName(), callbackNames)) continue;
+            found++;
             try {
-                Class<?> c = Class.forName(cn, false, cl);
-                for (java.lang.reflect.Method m : c.getDeclaredMethods()) {
-                    String n = m.getName();
-                    if (n.equals("load") || n.equals("show") ||
-                            n.equals("startLoadAd") || n.equals("startBiddingRequest") ||
-                            n.equals("loadCustomNetworkAd") || n.equals("checkBiddingCache")) {
-                        try {
-                            XposedBridge.hookMethod(m, new XC_MethodHook() {
-                                @Override protected void beforeHookedMethod(MethodHookParam p) {
-                                    XposedBridge.log(TAG + "|CALL|" +
-                                            p.method.getDeclaringClass().getName() + "." +
-                                            p.method.getName() + "|" + safeArgs(p.args));
-                                }
-                                @Override protected void afterHookedMethod(MethodHookParam p) {
-                                    XposedBridge.log(TAG + "|RETURN|" +
-                                            p.method.getDeclaringClass().getName() + "." +
-                                            p.method.getName() + "|" + safeValue(p.getResult()));
-                                }
-                            });
-                            XposedBridge.log(TAG + "|runtime_hooked|" + cn + "." + n);
-                        } catch (Throwable t) {
-                            XposedBridge.log(TAG + "|runtime_hook_failed|" + cn + "." + n +
-                                    "|" + t.getClass().getName() + "|" + String.valueOf(t.getMessage()));
-                        }
+                XposedBridge.hookMethod(m, new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam p) {
+                        log("CALLBACK", p.method.getDeclaringClass().getName()
+                                + "." + p.method.getName() + "|" + safeArgs(p.args));
                     }
-                }
+                });
+                hooked++;
+                log("listener_hooked", signature(m));
             } catch (Throwable t) {
-                XposedBridge.log(TAG + "|runtime_class_failed|" + cn +
-                        "|" + t.getClass().getName() + "|" + String.valueOf(t.getMessage()));
+                log("listener_hook_failed", signature(m) + "|"
+                        + t.getClass().getSimpleName() + "|" + safe(t.getMessage()));
             }
         }
+
+        log("listener_summary", listenerClass.getName()
+                + "|callbacks_found=" + found + "|hooked=" + hooked);
+    }
+
+    private static boolean isCallbackName(String name, String[] names) {
+        for (String n : names) {
+            if (n.equals(name)) return true;
+        }
+        return false;
     }
 
     private static String safeArgs(Object[] args) {
@@ -226,43 +268,9 @@ public final class MainHook implements IXposedHookLoadPackage {
             Object a = args[i];
             b.append("|a").append(i).append("=");
             if (a == null) b.append("null");
-            else b.append(a.getClass().getName()).append(":").append(String.valueOf(a));
+            else b.append(a.getClass().getName()).append(":").append(safe(a));
         }
         return b.toString();
-    }
-
-    private static String safeValue(Object value) {
-        if (value == null) return "null";
-        return value.getClass().getName() + ":" + String.valueOf(value);
-    }
-
-    // Logs reward-listener callback invocations if the listener class is loaded.
-    private static void traceRewardListenerMethods(final ClassLoader cl) {
-        try {
-            Class<?> listener = Class.forName("com.applovin.mediation.MaxRewardedAdListener", false, cl);
-            for (java.lang.reflect.Method m : listener.getDeclaredMethods()) {
-                String n = m.getName();
-                if (n.equals("onAdLoaded") || n.equals("onAdDisplayed") ||
-                        n.equals("onUserRewarded") || n.equals("onAdHidden") ||
-                        n.equals("onAdLoadFailed") || n.equals("onAdDisplayFailed")) {
-                    try {
-                        XposedBridge.hookMethod(m, new XC_MethodHook() {
-                            @Override protected void beforeHookedMethod(MethodHookParam p) {
-                                XposedBridge.log(TAG + "|CALLBACK|" +
-                                        p.method.getDeclaringClass().getName() + "." +
-                                        p.method.getName() + "|" + safeArgs(p.args));
-                            }
-                        });
-                    } catch (Throwable t) {
-                        XposedBridge.log(TAG + "|callback_hook_failed|" + m.getName() +
-                                "|" + t.getClass().getName() + "|" + String.valueOf(t.getMessage()));
-                    }
-                }
-            }
-        } catch (Throwable t) {
-            XposedBridge.log(TAG + "|listener_unavailable|" +
-                    t.getClass().getName() + "|" + String.valueOf(t.getMessage()));
-        }
     }
 
 }
