@@ -1,0 +1,33 @@
+Pop Odyssey Ad Monitor Xposed v0.3
+
+Target:
+- package: com.terraform.popodyssey
+- APK version analyzed: 1.0.5
+- architecture: arm64-v8a
+- Android target: Android 16 / arm64 compatible
+
+Primary V0.3 change:
+- Replace XposedHelpers.findAndHookMethod(...) re-resolution with
+  XposedBridge.hookMethod(Method, XC_MethodHook) using the exact Method
+  object returned by Class.getDeclaredMethods().
+
+Why:
+- V0.2 already discovered the real method signatures.
+- Re-resolving an overloaded method by name/varargs can add avoidable failure points.
+- V0.3 hooks the exact reflected Method object instead.
+- Failures remain logged and are not treated as proof that a class is broken.
+
+Runtime evidence incorporated:
+- LSPosed module load was observed.
+- com.terraform.popodyssey attachment was observed.
+- AlexMaxRewardedVideoAdapter and AlexMaxSplashAdapter inventories were observed.
+- Earlier hook_failed lines were observed; V0.3 improves diagnostic precision.
+
+Safety boundary:
+- read-only diagnostics only
+- no hosts/DNS blocking
+- no request/response modification
+- no click automation
+- no impression manipulation
+- no reward fabrication or farming
+- no invented SDK method names

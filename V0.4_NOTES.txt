@@ -1,0 +1,8 @@
+Pop Odyssey Ad Monitor V0.4
+Diagnostic runtime tracing.
+
+Adds read-only logging for Rewarded wrapper CALL/RETURN events and
+MaxRewardedAdListener callback events. It does not modify arguments,
+return values, reward values, ad traffic, or network responses.
+
+Target: Pop Odyssey com.terraform.popodyssey
