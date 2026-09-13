@@ -68,12 +68,21 @@ public final class MainHook implements IXposedHookLoadPackage {
         for (String word : METHOD_WORDS) if (n.contains(word)) return true;
         return false;
     }
-    private static String signature(Method m) {
+    private static String signature(java.lang.reflect.Member member) {
         StringBuilder b = new StringBuilder();
-        b.append(m.getDeclaringClass().getName()).append(".").append(m.getName()).append("(");
-        Class<?>[] p = m.getParameterTypes();
-        for (int i=0;i<p.length;i++) { if(i>0)b.append(","); b.append(p[i].getTypeName()); }
-        return b.append("):").append(m.getReturnType().getTypeName()).toString();
+        b.append(member.getDeclaringClass().getName()).append(".").append(member.getName()).append("(");
+
+        if (member instanceof Method) {
+            Method m = (Method) member;
+            Class<?>[] params = m.getParameterTypes();
+            for (int i = 0; i < params.length; i++) {
+                if (i > 0) b.append(",");
+                b.append(params[i].getTypeName());
+            }
+            return b.append("):").append(m.getReturnType().getTypeName()).toString();
+        }
+
+        return b.append("):<member>").toString();
     }
     private static String summarizeArgs(Object[] args) {
         if (args == null) return "";
