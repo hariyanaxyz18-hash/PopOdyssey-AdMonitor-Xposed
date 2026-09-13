@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:theme="@android:style/Theme.Material.Light.NoActionBar"
+        android:label="Pop Odyssey Ad Monitor">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription"
+            android:value="Read-only runtime monitor for ad SDK initialization/load/show/close/reward paths." />
+        <meta-data android:name="xposedminversion" android:value="82" />
+    </application>
+</manifest>

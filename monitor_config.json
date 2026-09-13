@@ -1,0 +1,43 @@
+{
+  "target_package": "com.terraform.popodyssey",
+  "version": "1.0.5",
+  "architecture": "arm64-v8a",
+  "mode": "read_only_runtime_monitor",
+  "wrapper_classes": [
+    "com.alex.AlexMaxInitManager",
+    "com.alex.AlexMaxBannerAdapter",
+    "com.alex.AlexMaxInterstitialAdapter",
+    "com.alex.AlexMaxRewardedVideoAdapter",
+    "com.alex.AlexMaxNativeAdapter",
+    "com.alex.AlexMaxManualNativeAd",
+    "com.alex.AlexMaxNativeAd",
+    "com.alex.AlexMaxNativeAdView",
+    "com.alex.AlexMaxRewardAd",
+    "com.alex.AlexMaxSplashAdapter",
+    "com.alex.AlexMaxBiddingInfo",
+    "com.alex.AlexMaxConst"
+  ],
+  "observed_events": [
+    "initialization",
+    "ad_load",
+    "ad_show",
+    "ad_close",
+    "reward_callbacks",
+    "bidding_info"
+  ],
+  "network_status": {
+    "AppLovin MAX": "bundled/integrated; active mediation requires runtime/server configuration",
+    "Pangle / ByteDance": "strongly evidenced in APK",
+    "InMobi": "strongly evidenced in APK",
+    "Vungle": "strongly evidenced in APK",
+    "Mintegral / MBridge": "strongly evidenced in APK",
+    "BIGO Ads": "strongly evidenced in APK",
+    "Fyber / DT Exchange / Inneractive": "strongly evidenced in APK"
+  },
+  "safety_rules": [
+    "do not assume an adapter class means the network is active",
+    "treat server-fetched mediation configuration as authoritative at runtime",
+    "do not hardcode or invent App IDs, Placement IDs, or Unit IDs",
+    "monitor initialization/load/show/callback paths; do not automate clicks, impressions, or reward farming"
+  ]
+}

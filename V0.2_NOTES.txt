@@ -1,0 +1,2 @@
+V0.2 = exact runtime method inventory + conservative com.alex wrapper hooks.
+Target remains Android 16 / arm64.

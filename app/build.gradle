@@ -1,0 +1,18 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.popodyssey.admonitor'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.popodyssey.admonitor'
+        minSdk 27
+        targetSdk 35
+        versionCode 1
+        versionName '0.1'
+    }
+}
+
+dependencies {
+    compileOnly 'de.robv.android.xposed:api:82'
+}

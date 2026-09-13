@@ -1,0 +1,284 @@
+project:
+  name: "Pop Odyssey"
+  package: "com.terraform.popodyssey"
+  version: "1.0.5"
+  architecture: "arm64-v8a"
+  android_target: "Android 16 compatible monitoring configuration"
+  purpose: "Static-analysis and runtime monitoring of ad SDK initialization, requests, displays, and callbacks. No click automation or ad-fraud behavior."
+priority_hook_layers:
+  -
+    priority: 1
+    layer: "App-specific wrapper"
+    package: "com.alex"
+    classes:
+      - "com.alex.AlexMaxInitManager"
+      - "com.alex.AlexMaxBannerAdapter"
+      - "com.alex.AlexMaxInterstitialAdapter"
+      - "com.alex.AlexMaxRewardedVideoAdapter"
+      - "com.alex.AlexMaxNativeAdapter"
+      - "com.alex.AlexMaxManualNativeAd"
+      - "com.alex.AlexMaxNativeAd"
+      - "com.alex.AlexMaxNativeAdView"
+      - "com.alex.AlexMaxRewardAd"
+      - "com.alex.AlexMaxSplashAdapter"
+      - "com.alex.AlexMaxBiddingInfo"
+      - "com.alex.AlexMaxConst"
+    observe:
+      - "initialization"
+      - "ad_load"
+      - "ad_show"
+      - "ad_close"
+      - "reward_callbacks"
+      - "bidding_info"
+  -
+    priority: 2
+    layer: "AnyThink / TopOn mediation"
+    packages:
+      - "com.anythink.core.api"
+      - "com.anythink.sdk"
+      - "com.anythink.network"
+    key_classes:
+      - "com.anythink.core.api.ATSDK"
+      - "com.anythink.sdk.banner"
+      - "com.anythink.sdk.interstitial"
+      - "com.anythink.sdk.nativead"
+      - "com.anythink.sdk.rewardvideo"
+      - "com.anythink.sdk.splash"
+    config_keys:
+      - "anythink_appid"
+      - "anythink_appkey"
+      - "anythink_placement_id"
+      - "placement_id"
+      - "adsource_id"
+      - "network_firm_id"
+      - "network_placement_id"
+      - "unit_id"
+      - "bid_id"
+      - "bid_result"
+    endpoints:
+      - "https://api.mosspf.net/v2/open/app"
+      - "https://api.mosspf.net/v2/open/area"
+      - "https://api.mosspf.net/v2/open/dna"
+      - "https://api.mosspf.net/v2/open/m_adapter"
+      - "https://api.mosspf.net/v2/open/pl_wf"
+      - "https://api.mosspf.net/v2/open/placement"
+      - "https://ssapi.mosspf.net/sdk/realtime_waterfall"
+      - "https://adx.mosspf.net/bid"
+      - "https://adx.mosspf.net/openapi/req"
+      - "https://adx.mosspf.net/request"
+    observe:
+      - "placement_resolution"
+      - "waterfall"
+      - "ad_source_selection"
+      - "bid_result"
+networks:
+  -
+    name: "AppLovin MAX"
+    packages:
+      - "com.applovin.sdk"
+      - "com.applovin.mediation"
+    key_classes:
+      - "com.applovin.sdk.AppLovinSdk"
+      - "com.applovin.mediation.MaxAd"
+      - "com.applovin.mediation.ads.MaxAdView"
+      - "com.applovin.mediation.ads.MaxInterstitialAd"
+      - "com.applovin.mediation.ads.MaxRewardedAd"
+      - "com.applovin.mediation.nativeAds.MaxNativeAdLoader"
+    keys:
+      - "sdk_key"
+      - "ad_unit_id"
+      - "zone_id"
+      - "AppLovin-Ad-Unit-Id"
+    domains:
+      - "a.applovin.com"
+      - "b.applovin.com"
+      - "d.applovin.com"
+      - "rt.applovin.com"
+      - "vid.applovin.com"
+    formats:
+      - "banner"
+      - "MREC"
+      - "interstitial"
+      - "rewarded"
+      - "app_open"
+      - "native"
+    status: "bundled / integrated; active mediation status requires runtime/server configuration"
+  -
+    name: "Pangle / ByteDance"
+    packages:
+      - "com.bytedance.sdk.openadsdk"
+      - "com.bytedance.sdk.pangle"
+    key_classes:
+      - "com.bytedance.sdk.openadsdk.api.init.PAGSdk"
+    keys:
+      - "appid"
+      - "rit"
+      - "pangle_request_id"
+      - "pangle_reward_amount"
+      - "pangle_reward_name"
+    endpoints:
+      - "https://api16-access-sg.pangle.io/api/ad/union/sdk/get_ads/"
+      - "https://api16-access-ttp.tiktokpangle.us/service/2/app_log/"
+    formats:
+      - "rewarded"
+      - "interstitial"
+      - "app_open"
+      - "playable"
+      - "native"
+      - "banner"
+      - "splash"
+    status: "strongly evidenced in APK"
+  -
+    name: "InMobi"
+    packages:
+      - "com.inmobi.sdk"
+      - "com.inmobi.ads"
+      - "com.anythink.network.inmobi"
+    keys:
+      - "accountId"
+      - "unitId"
+    endpoints:
+      - "https://ads.inmobi.com/sdk"
+      - "https://config.inmobi.com/config-server/v1/config/secure.cfg"
+    formats:
+      - "banner"
+      - "interstitial"
+      - "rewarded"
+      - "native"
+    status: "strongly evidenced in APK"
+  -
+    name: "Vungle"
+    packages:
+      - "com.vungle.ads"
+      - "com.anythink.network.vungle"
+    keys:
+      - "appId"
+      - "placementId"
+    endpoints:
+      - "https://adx.ads.vungle.com/api/ads"
+      - "https://config.ads.vungle.com/"
+    formats:
+      - "rewarded"
+      - "interstitial"
+      - "banner"
+      - "native"
+      - "splash"
+    status: "strongly evidenced in APK"
+  -
+    name: "Mintegral / MBridge"
+    packages:
+      - "com.mbridge.msdk"
+    key_classes:
+      - "com.mbridge.msdk.MBridgeSDK"
+    keys:
+      - "mbridge_appid"
+      - "mbridge_appkey"
+    formats:
+      - "banner"
+      - "bidding"
+      - "native"
+      - "splash"
+      - "interstitial"
+      - "rewarded"
+      - "video"
+    status: "strongly evidenced in APK"
+  -
+    name: "BIGO Ads"
+    packages:
+      - "sg.bigo.ads"
+    key_classes:
+      - "com.terraform.popodyssey.BigoAdsProvider"
+      - "com.applovin.mediation.adapters.BigoAdsMediationAdapter"
+    keys:
+      - "appId"
+    domains:
+      - "mraid.bigo.sg"
+      - "adsbigo.com"
+    formats:
+      - "splash"
+      - "interstitial"
+      - "video/rewarded"
+      - "native"
+      - "companion"
+      - "MRAID"
+    status: "strongly evidenced in APK"
+  -
+    name: "Fyber / DT Exchange / Inneractive"
+    packages:
+      - "com.fyber.inneractive.sdk"
+    keys:
+      - "appId"
+      - "placement_id"
+    endpoints:
+      - "https://init-mp.fyber.com/init"
+    formats:
+      - "rich_media"
+      - "MRAID"
+      - "video"
+      - "interstitial"
+    status: "strongly evidenced in APK"
+not_proven_active:
+  - "AdColony"
+  - "Adjoe"
+  - "Amazon"
+  - "BidMachine"
+  - "Chartboost"
+  - "Criteo"
+  - "Dataseat"
+  - "Facebook"
+  - "Google Ad Manager"
+  - "Google"
+  - "HyprMX"
+  - "ironSource"
+  - "Line"
+  - "MobileFuse"
+  - "Moloco"
+  - "MyTarget"
+  - "Nend"
+  - "Ogury"
+  - "PubMatic"
+  - "SayGames"
+  - "Smaato"
+  - "Snap"
+  - "Tapjoy"
+  - "Tencent"
+  - "Unity Ads"
+  - "Verizon Ads"
+  - "Verve"
+  - "Yahoo"
+  - "Yandex"
+runtime_log_fields:
+  - "timestamp"
+  - "package"
+  - "process"
+  - "thread"
+  - "sdk"
+  - "class"
+  - "method"
+  - "placement_id"
+  - "adsource_id"
+  - "network_firm_id"
+  - "network_placement_id"
+  - "unit_id"
+  - "bid_id"
+  - "ad_format"
+  - "event"
+  - "result"
+  - "error"
+rules:
+  - "Do not assume an adapter class means the network is active."
+  - "Treat server-fetched mediation configuration as authoritative at runtime."
+  - "Do not hardcode or invent App IDs, Placement IDs, or Unit IDs that were not recovered from the APK."
+  - "Monitor initialization/load/show/callback paths; do not automate clicks, impressions, or reward farming."
+next_extraction:
+  goal: "Recover exact class/method names and distinguish hardcoded IDs from remotely fetched IDs."
+  targets:
+    - "com.alex.* method table"
+    - "ATSDK initialization calls"
+    - "placement/adsource mapping"
+    - "Pangle rit/appid"
+    - "InMobi accountId/unitId"
+    - "Vungle appId/placementId"
+    - "Mintegral appid/appkey"
+    - "BIGO appId"
+    - "Fyber application/placement identifiers"
